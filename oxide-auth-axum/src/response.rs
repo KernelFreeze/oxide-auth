@@ -5,7 +5,8 @@ use axum::{
         StatusCode,
         header::{self, HeaderValue, HeaderName},
         HeaderMap,
-    }, body::{BoxBody, boxed},
+    },
+    body::{BoxBody, boxed},
 };
 use oxide_auth::frontends::dev::{WebResponse, Url};
 
@@ -14,7 +15,7 @@ use oxide_auth::frontends::dev::{WebResponse, Url};
 pub struct OAuthResponse {
     status: StatusCode,
     headers: HeaderMap,
-    body: Option<BoxBody>,
+    body: BoxBody,
 }
 
 impl OAuthResponse {
@@ -44,12 +45,12 @@ impl OAuthResponse {
 
     /// Set the body for the response
     pub fn body(&mut self, body: String) {
-        self.body = Some(boxed(body));
+        self.body = boxed(body);
     }
 
     /// Set the body for the response to a boxed value
     pub fn boxed_body(&mut self, body: BoxBody) {
-        self.body = Some(body);
+        self.body = body;
     }
 }
 
@@ -93,7 +94,7 @@ impl WebResponse for OAuthResponse {
 
 impl IntoResponse for OAuthResponse {
     fn into_response(self) -> Response {
-        (self.status, self.headers, self.body.unwrap_or_default()).into_response()
+        (self.status, self.headers, self.body).into_response()
     }
 }
 
@@ -103,7 +104,7 @@ impl From<Response> for OAuthResponse {
         Self {
             status: parts.status,
             headers: parts.headers,
-            body: Some(body),
+            body,
         }
     }
 }

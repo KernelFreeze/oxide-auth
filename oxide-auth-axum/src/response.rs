@@ -5,16 +5,16 @@ use axum::{
         StatusCode,
         header::{self, HeaderValue, HeaderName},
         HeaderMap,
-    },
+    }, body::{BoxBody, boxed},
 };
 use oxide_auth::frontends::dev::{WebResponse, Url};
 
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Debug)]
 /// Type implementing `WebResponse` and `IntoResponse` for use in route handlers
 pub struct OAuthResponse {
     status: StatusCode,
     headers: HeaderMap,
-    body: Option<String>,
+    body: Option<BoxBody>,
 }
 
 impl OAuthResponse {
@@ -44,6 +44,11 @@ impl OAuthResponse {
 
     /// Set the body for the response
     pub fn body(&mut self, body: String) {
+        self.body = Some(boxed(body));
+    }
+
+    /// Set the body for the response to a boxed value
+    pub fn boxed_body(&mut self, body: BoxBody) {
         self.body = Some(body);
     }
 }
@@ -74,13 +79,13 @@ impl WebResponse for OAuthResponse {
     }
 
     fn body_text(&mut self, text: &str) -> Result<(), Self::Error> {
-        self.body = Some(text.to_owned());
+        self.body(text.to_owned());
         self.header(header::CONTENT_TYPE, HeaderValue::from_static("text/plain"))?;
         Ok(())
     }
 
     fn body_json(&mut self, json: &str) -> Result<(), Self::Error> {
-        self.body = Some(json.to_owned());
+        self.body(json.to_owned());
         self.header(header::CONTENT_TYPE, HeaderValue::from_static("application/json"))?;
         Ok(())
     }
@@ -92,8 +97,8 @@ impl IntoResponse for OAuthResponse {
     }
 }
 
-impl From<Response<String>> for OAuthResponse {
-    fn from(response: Response<String>) -> Self {
+impl From<Response> for OAuthResponse {
+    fn from(response: Response) -> Self {
         let (parts, body) = response.into_parts();
         Self {
             status: parts.status,

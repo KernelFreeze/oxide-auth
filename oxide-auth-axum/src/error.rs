@@ -31,6 +31,9 @@ pub enum WebError {
 
     /// General internal server error
     InternalError(Option<String>),
+
+    /// Failed to encode response
+    EncodeResponse,
 }
 
 impl std::fmt::Display for WebError {
@@ -45,6 +48,7 @@ impl std::fmt::Display for WebError {
             WebError::Authorization => write!(f, "Request has invalid Authorization headers"),
             WebError::InternalError(None) => write!(f, "An internal server error occured"),
             WebError::InternalError(Some(ref e)) => write!(f, "An internal server error occured: {}", e),
+            WebError::EncodeResponse => write!(f, "Failed to encode response"),
         }
     }
 }

@@ -6,19 +6,18 @@ use axum::{
         header::{self, HeaderValue, HeaderName},
         HeaderMap,
     },
-    body::{BoxBody, boxed},
 };
 use oxide_auth::frontends::dev::{WebResponse, Url};
 
 #[derive(Default, Debug)]
 /// Type implementing `WebResponse` and `IntoResponse` for use in route handlers
-pub struct OAuthResponse {
+pub struct OAuthResponse<T> {
     status: StatusCode,
     headers: HeaderMap,
-    body: BoxBody,
+    body: T,
 }
 
-impl OAuthResponse {
+impl<T> OAuthResponse<T> {
     /// Adds a header to the response
     pub fn header<H, V>(&mut self, key: H, value: V) -> Result<(), WebError>
     where
@@ -44,17 +43,12 @@ impl OAuthResponse {
     }
 
     /// Set the body for the response
-    pub fn body(&mut self, body: String) {
-        self.body = boxed(body);
-    }
-
-    /// Set the body for the response to a boxed value
-    pub fn boxed_body(&mut self, body: BoxBody) {
+    pub fn body(&mut self, body: T) {
         self.body = body;
     }
 }
 
-impl WebResponse for OAuthResponse {
+impl WebResponse for OAuthResponse<String> {
     type Error = WebError;
 
     fn ok(&mut self) -> Result<(), Self::Error> {
@@ -92,14 +86,14 @@ impl WebResponse for OAuthResponse {
     }
 }
 
-impl IntoResponse for OAuthResponse {
+impl<T: IntoResponse> IntoResponse for OAuthResponse<T> {
     fn into_response(self) -> Response {
         (self.status, self.headers, self.body).into_response()
     }
 }
 
-impl From<Response> for OAuthResponse {
-    fn from(response: Response) -> Self {
+impl<T> From<Response<T>> for OAuthResponse<T> {
+    fn from(response: Response<T>) -> Self {
         let (parts, body) = response.into_parts();
         Self {
             status: parts.status,

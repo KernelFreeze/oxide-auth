@@ -61,7 +61,7 @@ impl From<OAuthResource> for OAuthRequest {
 
 impl WebRequest for OAuthRequest {
     type Error = WebError;
-    type Response = OAuthResponse;
+    type Response = OAuthResponse<String>;
 
     fn query(&mut self) -> Result<Cow<dyn QueryParameter + 'static>, Self::Error> {
         self.query

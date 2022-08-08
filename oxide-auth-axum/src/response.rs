@@ -19,9 +19,11 @@ pub struct OAuthResponse {
 
 impl OAuthResponse {
     /// Adds a header to the response
-    pub fn header(
-        &mut self, key: impl TryInto<HeaderName>, value: impl TryInto<HeaderValue>,
-    ) -> Result<(), WebError> {
+    pub fn header<H, V>(&mut self, key: H, value: V) -> Result<(), WebError>
+    where
+        H: TryInto<HeaderName>,
+        V: TryInto<HeaderValue>,
+    {
         let name = key.try_into().map_err(|_| WebError::EncodeResponse)?;
         let value = value.try_into().map_err(|_| WebError::EncodeResponse)?;
         self.headers.append(name, value);
@@ -35,15 +37,14 @@ impl OAuthResponse {
     }
 
     /// Set the `ContentType` header on a response
-    pub fn content_type(mut self, content_type: &str) -> Result<Self, WebError> {
+    pub fn content_type(&mut self, content_type: &str) -> Result<(), WebError> {
         self.header(header::CONTENT_TYPE, content_type)?;
-        Ok(self)
+        Ok(())
     }
 
     /// Set the body for the response
-    pub fn body(mut self, body: String) -> Self {
+    pub fn body(&mut self, body: String) {
         self.body = Some(body);
-        self
     }
 }
 

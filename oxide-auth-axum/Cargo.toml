@@ -12,5 +12,8 @@ license = "MIT OR Apache-2.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.6.1"
+axum = { git = "https://github.com/tokio-rs/axum.git", default-features = false, features = [
+    "query",
+    "form",
+] }
 oxide-auth = { version = "0.5", path = "../oxide-auth" }
